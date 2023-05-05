@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![cfg(not(test))]
 
 /*

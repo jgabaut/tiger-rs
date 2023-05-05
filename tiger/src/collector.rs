@@ -26,6 +26,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_void};
 use std::ptr;
+use std::arch::asm;
 
 use data_layout::{
     ARRAY_DATA_LAYOUT_SIZE,
@@ -416,6 +417,7 @@ fn fetch_pointer_map() -> HashMap<usize, Vec<Stack>> {
         let end_marker = &__tiger_pointer_map_end as *const _ as usize;
         let mut pointer = &__tiger_pointer_map as *const usize;
         loop {
+            //FIXME: Unaligned pointer access on half the tests.
             let address =
                 if *pointer == end_marker {
                     break;
@@ -499,11 +501,15 @@ fn size_of(ptr: usize) -> usize {
 }
 
 fn rbp() -> usize {
-    let result: usize;
+    let result_s: usize;
+    let result: u64;
     unsafe {
-        llvm_asm!("mov $0, rbp" : "=r"(result) : : : "intel")
+        asm!("mov {0}, rbp", out(reg) result)
     }
-    result
+    //TODO: properly check this asm works as intended.
+    result_s = result as usize;
+    assert_eq!(result_s as u64, result);
+    result_s
 }
 
 #[derive(Debug)]
